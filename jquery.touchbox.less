@@ -1,0 +1,64 @@
+///////////////////////////
+// SETTINGS
+///////////////////////////
+// general
+@position: fixed;
+@z_index: 1090;
+// overlay
+@overlay_opacity: 75;
+@overlay_color: black;
+///////////////////////////
+// MIXINS
+///////////////////////////
+.opacity(@opacity: 100) {
+	filter: e(%("alpha(opacity=%d)", @opacity));
+	-khtml-opacity: @opacity / 100;
+	-moz-opacity: @opacity / 100;
+	opacity: @opacity / 100;
+}
+.square(@size) {
+	width: @size;
+	height: @size;
+}
+///////////////////////////
+// STYLES
+///////////////////////////
+body {
+	> .touchBox {
+		.square(100%);
+		position: @position;
+		top: 0;
+		left: 0;
+		z-index: @z_index;
+		overflow: hidden;
+		&.hide {
+			display: none;
+		}
+		.touchBox-overlay {
+			.square(100%);
+			.opacity(@overlay_opacity);
+			background: @overlay_color;
+			position: relative;
+			z-index: @z_index + 1;
+		}
+		.touchBox-ul {
+			.square(100%);
+			position: absolute;
+			top: 0;
+			left: 0;
+			z-index: @z_index + 2;
+			margin: 0;
+			padding: 0;
+			.touchBox-placeholder {
+				.square(100%);
+				position: relative;
+				.touchBox-image {
+					display: block;
+					position: absolute;
+					top: 50%;
+					left: 50%;
+				}
+			}
+		}
+	}
+}

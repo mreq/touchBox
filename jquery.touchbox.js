@@ -4,13 +4,12 @@
 
   $(function() {
     $.fn.touchBox = function(customOptions) {
-      var all, arrows, body, box, count, extractUrlFrom, g, hide, init, isTouchDevice, isValidIndex, items, loadImage, makeASpring, makePlaceholders, max, min, moveToIndex, options, overlay, placeImage, placeholders, preloadImages, show, showNext, showPrevious, toggleArrows, wrap;
+      var alignImage, arrows, body, box, count, extractUrlFrom, g, hide, init, isTouchDevice, isValidIndex, items, loadImage, makeASpring, makePlaceholders, max, min, moveToIndex, options, overlay, placeImage, placeholders, preloadImages, show, showNext, showPrevious, toggleArrows, wrap;
       options = $.extend({}, $.fn.touchBox.defaultOptions, customOptions);
       items = this;
       body = $('body');
-      wrap = $("<div class=\"touchBox\" id=\"touchBox-" + window.touchBoxCount + "\"></div>");
+      wrap = $('<div class="touchBox hide"></div>');
       overlay = $('<div class="touchBox-overlay"></div>');
-      all = wrap.add(overlay);
       box = $('<ul class="touchBox-ul"></ul>');
       arrows = {
         left: $('<div class="touchBox-arrow touchBox-left"></div>'),
@@ -26,11 +25,11 @@
       min = 0;
       max = count - 1;
       isTouchDevice = __indexOf.call(window, 'ontouchstart') >= 0;
-      if (typeof window.touchBoxCount === 'undefined') {
-        window.touchBoxCount = 0;
-      } else {
-        window.touchBoxCount++;
-      }
+      makePlaceholders = function() {
+        return items.each(function(index) {
+          return placeholders = placeholders.add($("<li class=\"touchBox-placeholder\" data-index=\"" + index + "\"></li>"));
+        });
+      };
       isValidIndex = function(index) {
         if (index < min) {
           return false;
@@ -64,14 +63,24 @@
         };
         return setTimeout(callback, 500);
       };
-      makePlaceholders = function() {
-        return items.each(function(index) {
-          return placeholders.add($("<li class=\"placeholder\" data-inde=\"" + index + "\"></li>"));
+      alignImage = function(img) {
+        var h, w;
+        w = img.width();
+        h = img.height();
+        img.attr({
+          width: w,
+          height: h
+        });
+        return img.css({
+          marginLeft: -w / 2,
+          marginTop: -h / 2
         });
       };
       loadImage = function(src, callback) {
         var img;
-        img = $('<img alt="touchBox image" />').one('load', function() {
+        img = $('<img alt="touchBox image" class="touchBox-image" />').one('load', function() {
+          alignImage(img);
+          console.log(img);
           return callback.call(img);
         });
         return img.attr({
@@ -79,14 +88,15 @@
         });
       };
       placeImage = function(index) {
-        var item, url;
+        var item, placeholder, url;
         if (!isValidIndex(index)) {
           return false;
         }
-        item = preloader.eq(index);
+        item = items.eq(index);
+        placeholder = placeholders.eq(index);
         url = extractUrlFrom(item);
         return loadImage(url, function() {
-          return item.addClass('loaded').html(this);
+          return placeholder.addClass('loaded').html(this);
         });
       };
       moveToIndex = function(index) {
@@ -96,7 +106,7 @@
         box.css({
           left: "-" + (100 * index) + "%"
         });
-        g.index = indexpreloadThese;
+        g.index = index;
         return wrap.trigger('moved');
       };
       showNext = function() {
@@ -118,43 +128,57 @@
         }
       };
       preloadImages = function() {
-        var high, low, preloadThese;
-        low = g.index - options.imagesToPreload;
-        if (low < min) {
-          low = min;
+        var end, start, _results;
+        start = g.index - options.imagesToPreload;
+        if (start < min) {
+          start = min;
         }
-        high = g.index + options.imagesToPreload;
-        if (high > max) {
-          high = max;
+        end = g.index + options.imagesToPreload;
+        if (end > max) {
+          end = max;
         }
-        preloadThese = placeholders.slice(low, high);
-        return preloadThese.each(function() {
-          return placeImage($(this));
-        });
+        _results = [];
+        while (start < end) {
+          placeImage(start);
+          _results.push(start++);
+        }
+        return _results;
       };
       init = function(index) {
         if (!index) {
-          index = 0;
+          index = g.index;
+        }
+        if (typeof window.touchBoxCount === 'undefined') {
+          window.touchBoxCount = 0;
+        } else {
+          window.touchBoxCount++;
         }
         g.init = true;
         makePlaceholders();
         box.append(placeholders);
+        box.width("" + (count * 100) + "%");
+        wrap.attr({
+          id: "touchBox-" + window.touchBoxCount
+        });
+        wrap.append(overlay);
         wrap.append(box);
-        return body.append(all);
+        body.append(wrap);
+        moveToIndex(index);
+        return show();
       };
       show = function(index) {
         if (!index) {
           index = 0;
         }
         if (g.init) {
-          return all.removeClass('hide');
+          return wrap.removeClass('hide');
         } else {
           init(index);
-          return all.removeClass('hide');
+          return wrap.removeClass('hide');
         }
       };
       hide = function() {
-        return all.removeClass('hide');
+        return wrap.removeClass('hide');
       };
       wrap.on('moved', function() {
         toggleArrows();
@@ -166,7 +190,7 @@
         index = items.index(this);
         return show(index);
       });
-      return $(window).on('keydown', function(e) {
+      $(window).on('keydown', function(e) {
         if (e.keyCode === 37) {
           showPrevious();
         }
@@ -177,6 +201,8 @@
           return hideBox();
         }
       });
+      overlay.on('click', hide);
+      return init();
     };
     return $.fn.touchBox.defaultOptions = {
       imagesToPreload: 2

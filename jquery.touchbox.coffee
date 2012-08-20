@@ -11,9 +11,8 @@ $ ->
 		###############################	
 		items = this
 		body = $('body')
-		wrap = $("<div class=\"touchBox\" id=\"touchBox-#{ window.touchBoxCount }\"></div>")
+		wrap = $('<div class="touchBox hide"></div>')
 		overlay = $('<div class="touchBox-overlay"></div>')
-		all = wrap.add overlay
 		box = $('<ul class="touchBox-ul"></ul>')
 		arrows =
 			left: $('<div class="touchBox-arrow touchBox-left"></div>')
@@ -30,10 +29,12 @@ $ ->
 		min = 0 # min index
 		max = count - 1 # max index
 		isTouchDevice = 'ontouchstart' in window
-		if typeof window.touchBoxCount is 'undefined'
-			window.touchBoxCount = 0
-		else
-			window.touchBoxCount++
+		###############################	
+		## init actions
+		###############################
+		makePlaceholders = ->
+			items.each (index) ->
+				placeholders = placeholders.add $("<li class=\"touchBox-placeholder\" data-index=\"#{ index }\"></li>")
 		###############################	
 		## helper functions
 		###############################	
@@ -58,31 +59,40 @@ $ ->
 			callback = ->
 				box.removeClass className
 			setTimeout callback, 500
-		makePlaceholders = ->
-			items.each (index) ->
-				placeholders.add $("<li class=\"placeholder\" data-inde=\"#{ index }\"></li>")
+		alignImage = (img) ->
+			w = img.width()
+			h = img.height()
+			img.attr
+				width: w
+				height: h
+			img.css
+				marginLeft: -w/2
+				marginTop: -h/2
 		###############################	
 		## private functions
 		###############################
 		# loads img, calls callback afterwards
 		loadImage = (src, callback) ->
-			img = $('<img alt="touchBox image" />').one 'load', ->
+			img = $('<img alt="touchBox image" class="touchBox-image" />').one 'load', ->
+				alignImage img
+				console.log img
 				callback.call img
 			img.attr
 				src: src
-		# places img into prepared placeholder
+		# places img into itemprepared placeholder
 		placeImage = (index) ->
 			return false unless isValidIndex index
-			item = preloader.eq index
+			item = items.eq index
+			placeholder = placeholders.eq index
 			url = extractUrlFrom item
 			loadImage url, ->
-				item.addClass('loaded').html this
+				placeholder.addClass('loaded').html this
 		# moves the box to the item specified by index
 		moveToIndex = (index) ->
 			return false unless isValidIndex index
 			box.css
 				left: "-#{ 100*index }%"
-			g.index = indexpreloadThese
+			g.index = index
 			wrap.trigger 'moved'
 		showNext = ->
 			index = g.index + 1
@@ -98,30 +108,40 @@ $ ->
 				makeASpring 'left'
 		# preloads the neighboring images
 		preloadImages = ->
-			low = g.index - options.imagesToPreload
-			low = min if low < min
-			high = g.index + options.imagesToPreload
-			high = max if high > max
-			preloadThese = placeholders.slice low, high
-			preloadThese.each ->
-				placeImage $(this)
+			start = g.index - options.imagesToPreload
+			start = min if start < min
+			end = g.index + options.imagesToPreload
+			end = max if end > max
+			while start < end
+				placeImage start
+				start++
 
 		init = (index) ->
-			index = 0 unless index
+			index = g.index unless index
+			if typeof window.touchBoxCount is 'undefined'
+				window.touchBoxCount = 0
+			else
+				window.touchBoxCount++
 			g.init = true
 			makePlaceholders()
 			box.append placeholders
+			box.width "#{ count*100 }%"
+			wrap.attr
+				id: "touchBox-#{ window.touchBoxCount }"
+			wrap.append overlay
 			wrap.append box
-			body.append all
+			body.append wrap
+			moveToIndex index
+			show()
 		show = (index) ->
 			index = 0 unless index
 			if g.init
-				all.removeClass 'hide'
+				wrap.removeClass 'hide'
 			else
 				init index
-				all.removeClass 'hide'
+				wrap.removeClass 'hide'
 		hide = ->
-			all.removeClass 'hide'
+			wrap.removeClass 'hide'
 		###############################	
 		## listen for events
 		###############################
@@ -142,7 +162,9 @@ $ ->
 			showNext() if e.keyCode is 39
 			# escape
 			hideBox() if e.keyCode is 27
+		overlay.on 'click', hide
 
+		init()
 
 	# default options
 	$.fn.touchBox.defaultOptions =

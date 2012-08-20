@@ -4,12 +4,13 @@
 
   $(function() {
     $.fn.touchBox = function(customOptions) {
-      var arrows, body, box, count, extractUrlFrom, g, isInitialized, isTouchDevice, isValidIndex, items, loadImage, makeASpring, max, min, moveToIndex, options, overlay, placeImage, placeholders, preloadImages, showNext, showPrevious, toggleArrows, wrap;
+      var all, arrows, body, box, count, extractUrlFrom, g, hide, init, isTouchDevice, isValidIndex, items, loadImage, makeASpring, makePlaceholders, max, min, moveToIndex, options, overlay, placeImage, placeholders, preloadImages, show, showNext, showPrevious, toggleArrows, wrap;
       options = $.extend({}, $.fn.touchBox.defaultOptions, customOptions);
       items = this;
       body = $('body');
       wrap = $("<div class=\"touchBox\" id=\"touchBox-" + window.touchBoxCount + "\"></div>");
       overlay = $('<div class="touchBox-overlay"></div>');
+      all = wrap.add(overlay);
       box = $('<ul class="touchBox-ul"></ul>');
       arrows = {
         left: $('<div class="touchBox-arrow touchBox-left"></div>'),
@@ -17,12 +18,13 @@
       };
       placeholders = $([]);
       g = {
-        index: 0
+        index: 0,
+        visible: false,
+        init: false
       };
       count = items.length;
       min = 0;
       max = count - 1;
-      isInitialized = false;
       isTouchDevice = __indexOf.call(window, 'ontouchstart') >= 0;
       if (typeof window.touchBoxCount === 'undefined') {
         window.touchBoxCount = 0;
@@ -62,6 +64,11 @@
         };
         return setTimeout(callback, 500);
       };
+      makePlaceholders = function() {
+        return items.each(function(index) {
+          return placeholders.add($("<li class=\"placeholder\" data-inde=\"" + index + "\"></li>"));
+        });
+      };
       loadImage = function(src, callback) {
         var img;
         img = $('<img alt="touchBox image" />').one('load', function() {
@@ -76,7 +83,7 @@
         if (!isValidIndex(index)) {
           return false;
         }
-        item = items.eq(index);
+        item = preloader.eq(index);
         url = extractUrlFrom(item);
         return loadImage(url, function() {
           return item.addClass('loaded').html(this);
@@ -112,33 +119,52 @@
       };
       preloadImages = function() {
         var high, low, preloadThese;
-        low = g.index - 2;
+        low = g.index - options.imagesToPreload;
         if (low < min) {
           low = min;
         }
-        high = g.index + 2;
+        high = g.index + options.imagesToPreload;
         if (high > max) {
           high = max;
         }
-        preloadThese = items.slice(low, high);
+        preloadThese = placeholders.slice(low, high);
         return preloadThese.each(function() {
           return placeImage($(this));
         });
       };
+      init = function(index) {
+        if (!index) {
+          index = 0;
+        }
+        g.init = true;
+        makePlaceholders();
+        box.append(placeholders);
+        wrap.append(box);
+        return body.append(all);
+      };
+      show = function(index) {
+        if (!index) {
+          index = 0;
+        }
+        if (g.init) {
+          return all.removeClass('hide');
+        } else {
+          init(index);
+          return all.removeClass('hide');
+        }
+      };
+      hide = function() {
+        return all.removeClass('hide');
+      };
       wrap.on('moved', function() {
         toggleArrows();
-        preloadImages();
-        return console.log(g.index);
+        return preloadImages();
       });
       items.on('click', function(e) {
         var index;
         e.preventDefault();
         index = items.index(this);
-        if (isInitialized) {
-          return showBox(index);
-        } else {
-          return init(index);
-        }
+        return show(index);
       });
       return $(window).on('keydown', function(e) {
         if (e.keyCode === 37) {
@@ -153,7 +179,7 @@
       });
     };
     return $.fn.touchBox.defaultOptions = {
-      'preferData': true
+      imagesToPreload: 2
     };
   });
 

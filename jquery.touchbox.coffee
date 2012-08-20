@@ -13,6 +13,7 @@ $ ->
 		body = $('body')
 		wrap = $("<div class=\"touchBox\" id=\"touchBox-#{ window.touchBoxCount }\"></div>")
 		overlay = $('<div class="touchBox-overlay"></div>')
+		all = wrap.add overlay
 		box = $('<ul class="touchBox-ul"></ul>')
 		arrows =
 			left: $('<div class="touchBox-arrow touchBox-left"></div>')
@@ -21,12 +22,13 @@ $ ->
 		###############################	
 		## helper variables
 		###############################
-		g =          # store globals there
-			index: 0  # current index
+		g =                # store globals there
+			index: 0        # current index
+			visible: false  # plugin starts hidden
+			init: false     # plugin has to be initialized (on first click)
 		count = items.length
 		min = 0 # min index
 		max = count - 1 # max index
-		isInitialized = false
 		isTouchDevice = 'ontouchstart' in window
 		if typeof window.touchBoxCount is 'undefined'
 			window.touchBoxCount = 0
@@ -56,6 +58,9 @@ $ ->
 			callback = ->
 				box.removeClass className
 			setTimeout callback, 500
+		makePlaceholders = ->
+			items.each (index) ->
+				placeholders.add $("<li class=\"placeholder\" data-inde=\"#{ index }\"></li>")
 		###############################	
 		## private functions
 		###############################
@@ -68,7 +73,7 @@ $ ->
 		# places img into prepared placeholder
 		placeImage = (index) ->
 			return false unless isValidIndex index
-			item = items.eq index
+			item = preloader.eq index
 			url = extractUrlFrom item
 			loadImage url, ->
 				item.addClass('loaded').html this
@@ -83,47 +88,53 @@ $ ->
 			index = g.index + 1
 			if isValidIndex index
 				moveToIndex index
-			else
-				# not a valid index, make a spring
+			else # not a valid index, make a spring
 				makeASpring 'right'
 		showPrevious = ->
 			index = g.index - 1
 			if isValidIndex index
 				moveToIndex index
-			else
-				# not a valid index, make a spring
+			else # not a valid index, make a spring
 				makeASpring 'left'
+		# preloads the neighboring images
 		preloadImages = ->
-			low = g.index - 2
+			low = g.index - options.imagesToPreload
 			low = min if low < min
-			high = g.index + 2
+			high = g.index + options.imagesToPreload
 			high = max if high > max
-			preloadThese = items.slice low, high
+			preloadThese = placeholders.slice low, high
 			preloadThese.each ->
 				placeImage $(this)
-		# init = (index) ->
-		# 	index = 0 unless index
-		# 	isInitialized = true
 
-		# showBox = ->
-
+		init = (index) ->
+			index = 0 unless index
+			g.init = true
+			makePlaceholders()
+			box.append placeholders
+			wrap.append box
+			body.append all
+		show = (index) ->
+			index = 0 unless index
+			if g.init
+				all.removeClass 'hide'
+			else
+				init index
+				all.removeClass 'hide'
+		hide = ->
+			all.removeClass 'hide'
 		###############################	
 		## listen for events
 		###############################
 		wrap.on 'moved', ->
 			toggleArrows()
 			preloadImages()
-			console.log g.index
 		###############################	
 		## bind events
 		###############################
 		items.on 'click', (e) ->
 			e.preventDefault()
 			index = items.index this
-			if isInitialized
-				showBox index
-			else
-				init index
+			show index
 		$(window).on 'keydown', (e) ->
 			# left arrow
 			showPrevious() if e.keyCode is 37
@@ -135,4 +146,4 @@ $ ->
 
 	# default options
 	$.fn.touchBox.defaultOptions =
-		'preferData': true
+		imagesToPreload: 2

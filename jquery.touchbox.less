@@ -4,6 +4,7 @@
 // general
 @position: fixed;
 @z_index: 1090;
+@spring_size: 50px;
 // overlay
 @overlay_opacity: 75;
 @overlay_color: black;
@@ -84,5 +85,34 @@ body {
 				}
 			}
 		}
+		.rightSpring {
+			-moz-animation: rightSpring 0.3s;
+			-webkit-animation: rightSpring 0.3s;
+		}
+		.leftSpring {
+			-moz-animation: leftSpring 0.3s;
+			-webkit-animation: leftSpring 0.3s;
+		}
+
 	}
+}
+@-moz-keyframes rightSpring{
+	0%   { margin-left: 0px; }
+	50%  { margin-left: -@spring_size; }
+	100% { margin-left: 0px; }
+}
+@-moz-keyframes leftSpring{
+	0%   { margin-left: 0px; }
+	50%  { margin-left: @spring_size; }
+	100% { margin-left: 0px; }
+}
+@-webkit-keyframes rightSpring{
+	0%   { margin-left: 0px; }
+	50%  { margin-left: -@spring_size; }
+	100% { margin-left: 0px; }
+}
+@-webkit-keyframes leftSpring{
+	0%   { margin-left: 0px; }
+	50%  { margin-left: @spring_size; }
+	100% { margin-left: 0px; }
 }

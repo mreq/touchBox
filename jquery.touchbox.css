@@ -63,3 +63,55 @@ body > .touchBox .touchBox-ul .touchBox-placeholder .touchBox-image {
   max-width: 100%;
   vertical-align: middle;
 }
+body > .touchBox .rightSpring {
+  -moz-animation: rightSpring 0.3s;
+  -webkit-animation: rightSpring 0.3s;
+}
+body > .touchBox .leftSpring {
+  -moz-animation: leftSpring 0.3s;
+  -webkit-animation: leftSpring 0.3s;
+}
+@-moz-keyframes rightSpring {
+  0% {
+    margin-left: 0px;
+  }
+  50% {
+    margin-left: -50px;
+  }
+  100% {
+    margin-left: 0px;
+  }
+}
+@-moz-keyframes leftSpring {
+  0% {
+    margin-left: 0px;
+  }
+  50% {
+    margin-left: 50px;
+  }
+  100% {
+    margin-left: 0px;
+  }
+}
+@-webkit-keyframes rightSpring {
+  0% {
+    margin-left: 0px;
+  }
+  50% {
+    margin-left: -50px;
+  }
+  100% {
+    margin-left: 0px;
+  }
+}
+@-webkit-keyframes leftSpring {
+  0% {
+    margin-left: 0px;
+  }
+  50% {
+    margin-left: 50px;
+  }
+  100% {
+    margin-left: 0px;
+  }
+}

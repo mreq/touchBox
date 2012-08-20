@@ -9,6 +9,9 @@
       items = this;
       body = $('body');
       wrap = $('<div class="touchBox hide"></div>');
+      if (options.position === 'absolute') {
+        wrap.addClass('absolute');
+      }
       overlay = $('<div class="touchBox-overlay"></div>');
       box = $('<ul class="touchBox-ul"></ul>');
       arrows = {
@@ -26,9 +29,10 @@
       max = count - 1;
       isTouchDevice = __indexOf.call(window, 'ontouchstart') >= 0;
       makePlaceholders = function() {
-        return items.each(function(index) {
+        items.each(function(index) {
           return placeholders = placeholders.add($("<li class=\"touchBox-placeholder\" data-index=\"" + index + "\"></li>"));
         });
+        return placeholders.width("" + (100 / count) + "%");
       };
       isValidIndex = function(index) {
         if (index < min) {
@@ -78,9 +82,7 @@
       };
       loadImage = function(src, callback) {
         var img;
-        img = $('<img alt="touchBox image" class="touchBox-image" />').one('load', function() {
-          alignImage(img);
-          console.log(img);
+        img = $('<img class="touchBox-image" alt="touchBox image" />').one('load', function() {
           return callback.call(img);
         });
         return img.attr({
@@ -92,12 +94,14 @@
         if (!isValidIndex(index)) {
           return false;
         }
-        item = items.eq(index);
         placeholder = placeholders.eq(index);
-        url = extractUrlFrom(item);
-        return loadImage(url, function() {
-          return placeholder.addClass('loaded').html(this);
-        });
+        if (!placeholder.hasClass('loaded')) {
+          item = items.eq(index);
+          url = extractUrlFrom(item);
+          return loadImage(url, function() {
+            return placeholder.addClass('loaded').html(this);
+          });
+        }
       };
       moveToIndex = function(index) {
         if (!isValidIndex(index)) {
@@ -138,7 +142,7 @@
           end = max;
         }
         _results = [];
-        while (start < end) {
+        while (start <= end) {
           placeImage(start);
           _results.push(start++);
         }
@@ -164,25 +168,32 @@
         wrap.append(box);
         body.append(wrap);
         moveToIndex(index);
-        return show();
+        return show(index);
       };
       show = function(index) {
         if (!index) {
           index = 0;
         }
         if (g.init) {
-          return wrap.removeClass('hide');
+          wrap.removeClass('hide');
         } else {
           init(index);
-          return wrap.removeClass('hide');
+          wrap.removeClass('hide');
         }
+        return g.visible = true;
       };
       hide = function() {
-        return wrap.removeClass('hide');
+        wrap.addClass('hide');
+        return g.visible = false;
       };
       wrap.on('moved', function() {
         toggleArrows();
         return preloadImages();
+      });
+      wrap.on('click', function(e) {
+        if (!$(e.target).is('img')) {
+          return hide();
+        }
       });
       items.on('click', function(e) {
         var index;
@@ -190,22 +201,23 @@
         index = items.index(this);
         return show(index);
       });
-      $(window).on('keydown', function(e) {
-        if (e.keyCode === 37) {
-          showPrevious();
-        }
-        if (e.keyCode === 39) {
-          showNext();
-        }
-        if (e.keyCode === 27) {
-          return hideBox();
+      return $(window).on('keydown', function(e) {
+        if (g.visible) {
+          if (e.keyCode === 37) {
+            showPrevious();
+          }
+          if (e.keyCode === 39) {
+            showNext();
+          }
+          if (e.keyCode === 27) {
+            return hide();
+          }
         }
       });
-      overlay.on('click', hide);
-      return init();
     };
     return $.fn.touchBox.defaultOptions = {
-      imagesToPreload: 2
+      imagesToPreload: 2,
+      position: 'fixed'
     };
   });
 

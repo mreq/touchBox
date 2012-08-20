@@ -12,6 +12,7 @@ $ ->
 		items = this
 		body = $('body')
 		wrap = $('<div class="touchBox hide"></div>')
+		wrap.addClass('absolute') if options.position is 'absolute'
 		overlay = $('<div class="touchBox-overlay"></div>')
 		box = $('<ul class="touchBox-ul"></ul>')
 		arrows =
@@ -35,6 +36,7 @@ $ ->
 		makePlaceholders = ->
 			items.each (index) ->
 				placeholders = placeholders.add $("<li class=\"touchBox-placeholder\" data-index=\"#{ index }\"></li>")
+			placeholders.width "#{ 100/count }%"
 		###############################	
 		## helper functions
 		###############################	
@@ -73,20 +75,20 @@ $ ->
 		###############################
 		# loads img, calls callback afterwards
 		loadImage = (src, callback) ->
-			img = $('<img alt="touchBox image" class="touchBox-image" />').one 'load', ->
-				alignImage img
-				console.log img
+			img = $('<img class="touchBox-image" alt="touchBox image" />').one 'load', ->
+				# alignImage img
 				callback.call img
 			img.attr
 				src: src
 		# places img into itemprepared placeholder
 		placeImage = (index) ->
 			return false unless isValidIndex index
-			item = items.eq index
 			placeholder = placeholders.eq index
-			url = extractUrlFrom item
-			loadImage url, ->
-				placeholder.addClass('loaded').html this
+			unless placeholder.hasClass('loaded')
+				item = items.eq index
+				url = extractUrlFrom item
+				loadImage url, ->
+					placeholder.addClass('loaded').html this
 		# moves the box to the item specified by index
 		moveToIndex = (index) ->
 			return false unless isValidIndex index
@@ -112,7 +114,7 @@ $ ->
 			start = min if start < min
 			end = g.index + options.imagesToPreload
 			end = max if end > max
-			while start < end
+			while start <= end
 				placeImage start
 				start++
 
@@ -132,7 +134,7 @@ $ ->
 			wrap.append box
 			body.append wrap
 			moveToIndex index
-			show()
+			show index
 		show = (index) ->
 			index = 0 unless index
 			if g.init
@@ -140,14 +142,18 @@ $ ->
 			else
 				init index
 				wrap.removeClass 'hide'
+			g.visible = true
 		hide = ->
-			wrap.removeClass 'hide'
+			wrap.addClass 'hide'
+			g.visible = false
 		###############################	
 		## listen for events
 		###############################
 		wrap.on 'moved', ->
 			toggleArrows()
 			preloadImages()
+		wrap.on 'click', (e) ->
+			hide() unless $(e.target).is 'img'
 		###############################	
 		## bind events
 		###############################
@@ -156,16 +162,15 @@ $ ->
 			index = items.index this
 			show index
 		$(window).on 'keydown', (e) ->
-			# left arrow
-			showPrevious() if e.keyCode is 37
-			# right arrow
-			showNext() if e.keyCode is 39
-			# escape
-			hideBox() if e.keyCode is 27
-		overlay.on 'click', hide
-
-		init()
+			if g.visible
+				# left arrow
+				showPrevious() if e.keyCode is 37
+				# right arrow
+				showNext() if e.keyCode is 39
+				# escape
+				hide() if e.keyCode is 27
 
 	# default options
 	$.fn.touchBox.defaultOptions =
 		imagesToPreload: 2
+		position: 'fixed'

@@ -20,6 +20,13 @@
 	width: @size;
 	height: @size;
 }
+.transition(@transition) {
+	-webkit-transition: @transition;
+	-moz-transition: @transition;
+	-ms-transition: @transition;
+	-o-transition: @transition;
+	transition: @transition;
+}
 ///////////////////////////
 // STYLES
 ///////////////////////////
@@ -31,6 +38,9 @@ body {
 		left: 0;
 		z-index: @z_index;
 		overflow: hidden;
+		&.absolute {
+			position: absolute;
+		}
 		&.hide {
 			display: none;
 		}
@@ -42,6 +52,7 @@ body {
 			z-index: @z_index + 1;
 		}
 		.touchBox-ul {
+			.transition(left 0.3s ease-in-out);
 			.square(100%);
 			position: absolute;
 			top: 0;
@@ -51,12 +62,25 @@ body {
 			padding: 0;
 			.touchBox-placeholder {
 				.square(100%);
+				float: left;
 				position: relative;
+				list-style: none;
+				line-height: 1px;
+				text-align: center;
+				width:100%;
+				display:inline-block;
+				&:before {
+					content: "";
+					display: inline-block;
+					height: 50%;
+					width: 1px;
+					margin-right:-1px;
+				}
 				.touchBox-image {
-					display: block;
-					position: absolute;
-					top: 50%;
-					left: 50%;
+					display: inline-block;
+					max-height: 100%;
+					max-width: 100%;
+					vertical-align: middle;
 				}
 			}
 		}

@@ -4,7 +4,7 @@
 
   $(function() {
     $.fn.touchBox = function(customOptions) {
-      var alignImage, arrows, body, box, count, extractUrlFrom, g, hide, init, isTouchDevice, isValidIndex, items, loadImage, makeASpring, makePlaceholders, max, min, moveToIndex, options, overlay, placeImage, placeholders, preloadImages, show, showNext, showPrevious, toggleArrows, wrap;
+      var alignImage, body, box, count, extractUrlFrom, g, hide, init, isTouchDevice, isValidIndex, items, loadImage, makeASpring, makePlaceholders, max, min, moveToIndex, options, overlay, placeImage, placeholders, preloadImages, show, showNext, showPrevious, toggleClasses, wrap;
       options = $.extend({}, $.fn.touchBox.defaultOptions, customOptions);
       items = this;
       body = $('body');
@@ -14,10 +14,6 @@
       }
       overlay = $('<div class="touchBox-overlay"></div>');
       box = $('<ul class="touchBox-ul"></ul>');
-      arrows = {
-        left: $('<div class="touchBox-arrow touchBox-left"></div>'),
-        right: $('<div class="touchBox-arrow touchBox-right"></div>')
-      };
       placeholders = $([]);
       g = {
         index: 0,
@@ -46,17 +42,11 @@
       extractUrlFrom = function(item) {
         return item.attr('href');
       };
-      toggleArrows = function() {
-        if (g.index === min) {
-          return arrows.left.addClass('hide');
-        } else {
-          arrows.left.removeClass('hide');
-          if (g.index === max) {
-            return arrows.right.addClass('hide');
-          } else {
-            return arrows.right.removeClass('hide');
-          }
-        }
+      toggleClasses = function() {
+        placeholders.removeClass('current prev next');
+        placeholders.eq(g.index - 1).addClass('prev');
+        placeholders.eq(g.index).addClass('current');
+        return placeholders.eq(g.index + 1).addClass('next');
       };
       makeASpring = function(direction) {
         var callback, className;
@@ -68,21 +58,24 @@
         return setTimeout(callback, 500);
       };
       alignImage = function(img) {
-        var h, w;
-        w = img.width();
-        h = img.height();
-        img.attr({
-          width: w,
-          height: h
-        });
-        return img.css({
-          marginLeft: -w / 2,
-          marginTop: -h / 2
+        return img.imagesLoaded(function() {
+          var h, w;
+          w = img.width();
+          h = img.height();
+          img.removeClass('not-aligned');
+          img.attr({
+            width: w,
+            height: h
+          });
+          return img.css({
+            marginLeft: -w / 2,
+            marginTop: -h / 2
+          });
         });
       };
       loadImage = function(src, callback) {
         var img;
-        img = $('<img class="touchBox-image" alt="touchBox image" />').one('load', function() {
+        img = $('<img class="touchBox-image not-aligned" alt="touchBox image" />').imagesLoaded(function() {
           return callback.call(img);
         });
         return img.attr({
@@ -99,6 +92,7 @@
           item = items.eq(index);
           url = extractUrlFrom(item);
           return loadImage(url, function() {
+            alignImage(this);
             return placeholder.addClass('loaded').html(this);
           });
         }
@@ -187,12 +181,19 @@
         return g.visible = false;
       };
       wrap.on('moved', function() {
-        toggleArrows();
+        toggleClasses();
         return preloadImages();
       });
       wrap.on('click', function(e) {
         if (!$(e.target).is('img')) {
           return hide();
+        }
+      });
+      wrap.on('click', '.next .touchBox-image, .prev .touchBox-image', function(e) {
+        if ($(this).parent('.touchBox-placeholder').hasClass('next')) {
+          return showNext();
+        } else {
+          return showPrevious();
         }
       });
       items.on('click', function(e) {
@@ -201,7 +202,7 @@
         index = items.index(this);
         return show(index);
       });
-      return $(window).on('keydown', function(e) {
+      $(window).on('keydown', function(e) {
         if (g.visible) {
           if (e.keyCode === 37) {
             showPrevious();
@@ -214,10 +215,27 @@
           }
         }
       });
+      return placeholders.on('touchstart', function(e) {
+        var startX, touch;
+        touch = e.originalEvent;
+        startX = touch.changedTouches[0].pageX;
+        return placeholders.on('touchmove', function(e) {
+          e.preventDefault();
+          touch = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0];
+          if ((touch.pageX - startX) > options.touchSensitivity) {
+            placeholders.off('touchmove');
+            return showPrevious();
+          } else if ((touch.pageX - startX) < -options.touchSensitivity) {
+            showNext();
+            return placeholders.off('touchmove');
+          }
+        });
+      });
     };
     return $.fn.touchBox.defaultOptions = {
       imagesToPreload: 2,
-      position: 'fixed'
+      position: 'fixed',
+      touchSensitivity: 100
     };
   });
 

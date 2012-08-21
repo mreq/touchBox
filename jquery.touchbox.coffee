@@ -15,9 +15,6 @@ $ ->
 		wrap.addClass('absolute') if options.position is 'absolute'
 		overlay = $('<div class="touchBox-overlay"></div>')
 		box = $('<ul class="touchBox-ul"></ul>')
-		arrows =
-			left: $('<div class="touchBox-arrow touchBox-left"></div>')
-			right: $('<div class="touchBox-arrow touchBox-right"></div>')
 		placeholders = $([])
 		###############################	
 		## helper variables
@@ -46,15 +43,11 @@ $ ->
 			true
 		extractUrlFrom = (item) ->
 			return item.attr 'href'
-		toggleArrows = ->
-			if g.index is min
-				arrows.left.addClass 'hide'
-			else
-				arrows.left.removeClass 'hide'
-				if g.index is max
-					arrows.right.addClass 'hide'
-				else
-					arrows.right.removeClass 'hide'
+		toggleClasses = ->
+			placeholders.removeClass 'current prev next'
+			placeholders.eq(g.index - 1).addClass 'prev'
+			placeholders.eq(g.index).addClass 'current'
+			placeholders.eq(g.index + 1).addClass 'next'
 		makeASpring = (direction) ->
 			className = "#{ direction }Spring"
 			box.addClass className
@@ -62,25 +55,26 @@ $ ->
 				box.removeClass className
 			setTimeout callback, 500
 		alignImage = (img) ->
-			w = img.width()
-			h = img.height()
-			img.attr
-				width: w
-				height: h
-			img.css
-				marginLeft: -w/2
-				marginTop: -h/2
+			img.imagesLoaded ->
+				w = img.width()
+				h = img.height()
+				img.removeClass 'not-aligned'
+				img.attr
+					width: w
+					height: h
+				img.css
+					marginLeft: -w/2
+					marginTop: -h/2
 		###############################	
 		## private functions
 		###############################
 		# loads img, calls callback afterwards
 		loadImage = (src, callback) ->
-			img = $('<img class="touchBox-image" alt="touchBox image" />').one 'load', ->
-				# alignImage img
+			img = $('<img class="touchBox-image not-aligned" alt="touchBox image" />').imagesLoaded ->
 				callback.call img
 			img.attr
 				src: src
-		# places img into itemprepared placeholder
+		# places img into prepared placeholder
 		placeImage = (index) ->
 			return false unless isValidIndex index
 			placeholder = placeholders.eq index
@@ -88,6 +82,8 @@ $ ->
 				item = items.eq index
 				url = extractUrlFrom item
 				loadImage url, ->
+					# `this` stands for the loaded img
+					alignImage this
 					placeholder.addClass('loaded').html this
 		# moves the box to the item specified by index
 		moveToIndex = (index) ->
@@ -150,10 +146,15 @@ $ ->
 		## listen for events
 		###############################
 		wrap.on 'moved', ->
-			toggleArrows()
+			toggleClasses()
 			preloadImages()
 		wrap.on 'click', (e) ->
 			hide() unless $(e.target).is 'img'
+		wrap.on 'click', '.next .touchBox-image, .prev .touchBox-image', (e) ->
+			if $(this).parent('.touchBox-placeholder').hasClass 'next'
+				showNext()
+			else
+				showPrevious()
 		###############################	
 		## bind events
 		###############################
@@ -169,8 +170,21 @@ $ ->
 				showNext() if e.keyCode is 39
 				# escape
 				hide() if e.keyCode is 27
+		placeholders.on 'touchstart', (e) ->
+			touch = e.originalEvent
+			startX = touch.changedTouches[0].pageX
+			placeholders.on 'touchmove', (e) ->
+				e.preventDefault()
+				touch = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0]
+				if (touch.pageX - startX) > options.touchSensitivity
+					placeholders.off 'touchmove'
+					showPrevious()
+				else if (touch.pageX - startX) < -options.touchSensitivity
+					showNext()
+					placeholders.off 'touchmove'
 
 	# default options
 	$.fn.touchBox.defaultOptions =
 		imagesToPreload: 2
 		position: 'fixed'
+		touchSensitivity: 100

@@ -25,11 +25,8 @@ body > .touchBox .touchBox-overlay {
   z-index: 1091;
 }
 body > .touchBox .touchBox-ul {
-  -webkit-transition: left 0.3s ease-in-out;
-  -moz-transition: left 0.3s ease-in-out;
-  -ms-transition: left 0.3s ease-in-out;
-  -o-transition: left 0.3s ease-in-out;
-  transition: left 0.3s ease-in-out;
+  /*.transition;*/
+
   width: 100%;
   height: 100%;
   position: absolute;
@@ -44,32 +41,44 @@ body > .touchBox .touchBox-ul .touchBox-placeholder {
   height: 100%;
   float: left;
   position: relative;
+  z-index: 1093;
   list-style: none;
-  line-height: 1px;
   text-align: center;
-  width: 100%;
-  display: inline-block;
-}
-body > .touchBox .touchBox-ul .touchBox-placeholder:before {
-  content: "";
-  display: inline-block;
-  height: 50%;
-  width: 1px;
-  margin-right: -1px;
+  background: url('ajax-loader.gif') center center no-repeat;
 }
 body > .touchBox .touchBox-ul .touchBox-placeholder .touchBox-image {
-  display: inline-block;
+  position: absolute;
   max-height: 100%;
   max-width: 100%;
-  vertical-align: middle;
+  top: 50%;
+  left: 50%;
+}
+body > .touchBox .touchBox-ul .touchBox-placeholder .touchBox-image.not-aligned {
+  visibility: hidden;
+}
+body > .touchBox .touchBox-ul .touchBox-placeholder.prev,
+body > .touchBox .touchBox-ul .touchBox-placeholder.next {
+  z-index: 1094;
+}
+body > .touchBox .touchBox-ul .touchBox-placeholder.prev .touchBox-image,
+body > .touchBox .touchBox-ul .touchBox-placeholder.next .touchBox-image {
+  margin-left: 0 !important;
+  cursor: pointer;
+}
+body > .touchBox .touchBox-ul .touchBox-placeholder.prev .touchBox-image {
+  left: auto;
+  right: -100px;
+}
+body > .touchBox .touchBox-ul .touchBox-placeholder.next .touchBox-image {
+  left: -100px;
 }
 body > .touchBox .rightSpring {
-  -moz-animation: rightSpring 0.3s;
-  -webkit-animation: rightSpring 0.3s;
+  -moz-animation: rightSpring 0.2s;
+  -webkit-animation: rightSpring 0.2s;
 }
 body > .touchBox .leftSpring {
-  -moz-animation: leftSpring 0.3s;
-  -webkit-animation: leftSpring 0.3s;
+  -moz-animation: leftSpring 0.2s;
+  -webkit-animation: leftSpring 0.2s;
 }
 @-moz-keyframes rightSpring {
   0% {

@@ -169,6 +169,7 @@
           index = 0;
         }
         if (g.init) {
+          moveToIndex(index);
           wrap.removeClass('hide');
         } else {
           init(index);
@@ -215,22 +216,24 @@
           }
         }
       });
-      return placeholders.on('touchstart', function(e) {
-        var startX, touch;
-        touch = e.originalEvent;
-        startX = touch.changedTouches[0].pageX;
-        return placeholders.on('touchmove', function(e) {
-          e.preventDefault();
-          touch = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0];
-          if ((touch.pageX - startX) > options.touchSensitivity) {
-            placeholders.off('touchmove');
-            return showPrevious();
-          } else if ((touch.pageX - startX) < -options.touchSensitivity) {
-            showNext();
-            return placeholders.off('touchmove');
-          }
+      if (isTouchDevice) {
+        return placeholders.on('touchstart', function(e) {
+          var startX, touch;
+          touch = e.originalEvent;
+          startX = touch.changedTouches[0].pageX;
+          return placeholders.on('touchmove', function(e) {
+            e.preventDefault();
+            touch = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0];
+            if ((touch.pageX - startX) > options.touchSensitivity) {
+              placeholders.off('touchmove');
+              return showPrevious();
+            } else if ((touch.pageX - startX) < -options.touchSensitivity) {
+              showNext();
+              return placeholders.off('touchmove');
+            }
+          });
         });
-      });
+      }
     };
     return $.fn.touchBox.defaultOptions = {
       imagesToPreload: 2,

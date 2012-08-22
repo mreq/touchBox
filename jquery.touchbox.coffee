@@ -134,6 +134,7 @@ $ ->
 		show = (index) ->
 			index = 0 unless index
 			if g.init
+				moveToIndex index
 				wrap.removeClass 'hide'
 			else
 				init index
@@ -170,18 +171,19 @@ $ ->
 				showNext() if e.keyCode is 39
 				# escape
 				hide() if e.keyCode is 27
-		placeholders.on 'touchstart', (e) ->
-			touch = e.originalEvent
-			startX = touch.changedTouches[0].pageX
-			placeholders.on 'touchmove', (e) ->
-				e.preventDefault()
-				touch = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0]
-				if (touch.pageX - startX) > options.touchSensitivity
-					placeholders.off 'touchmove'
-					showPrevious()
-				else if (touch.pageX - startX) < -options.touchSensitivity
-					showNext()
-					placeholders.off 'touchmove'
+		if isTouchDevice
+			placeholders.on 'touchstart', (e) ->
+				touch = e.originalEvent
+				startX = touch.changedTouches[0].pageX
+				placeholders.on 'touchmove', (e) ->
+					e.preventDefault()
+					touch = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0]
+					if (touch.pageX - startX) > options.touchSensitivity
+						placeholders.off 'touchmove'
+						showPrevious()
+					else if (touch.pageX - startX) < -options.touchSensitivity
+						showNext()
+						placeholders.off 'touchmove'
 
 	# default options
 	$.fn.touchBox.defaultOptions =

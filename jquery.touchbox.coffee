@@ -26,7 +26,10 @@ $ ->
 		count = items.length
 		min = 0 # min index
 		max = count - 1 # max index
-		isTouchDevice = 'ontouchstart' in window
+		if `('ontouchstart' in window) || window.DocumentTouch && document instanceof DocumentTouch`
+			isTouchDevice = true
+		else
+			isTouchDevice = false
 		###############################	
 		## init actions
 		###############################
@@ -172,18 +175,18 @@ $ ->
 				# escape
 				hide() if e.keyCode is 27
 		if isTouchDevice
-			placeholders.on 'touchstart', (e) ->
+			$(document).on 'touchstart', '.touchBox', (e) ->
 				touch = e.originalEvent
 				startX = touch.changedTouches[0].pageX
-				placeholders.on 'touchmove', (e) ->
+				wrap.on 'touchmove', (e) ->
 					e.preventDefault()
 					touch = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0]
 					if (touch.pageX - startX) > options.touchSensitivity
-						placeholders.off 'touchmove'
+						wrap.off 'touchmove'
 						showPrevious()
 					else if (touch.pageX - startX) < -options.touchSensitivity
+						wrap.off 'touchmove'
 						showNext()
-						placeholders.off 'touchmove'
 
 	# default options
 	$.fn.touchBox.defaultOptions =

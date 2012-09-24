@@ -4,11 +4,11 @@
 // general
 @position: fixed;
 @z_index: 1090;
-@spring_size: 50px;
+@spring_size: 150px;
 @spring_time: 0.2s;
 @image_path: '';
 @image_overlap: 100px;
-@transition_time: 2s;
+@transition_time: 0.4s;
 // overlay
 @overlay_opacity: 75;
 @overlay_color: black;
@@ -63,7 +63,7 @@ body {
 			z-index: @z_index + 1;
 		}
 		.touchBox-ul {
-			/*.transition;*/
+			.transition;
 			.square(100%);
 			position: absolute;
 			top: 0;
@@ -89,7 +89,7 @@ body {
 						visibility: hidden;
 					}
 				}
-				&.prev, &.next {
+				/*&.prev, &.next {
 					z-index: @z_index + 4;
 					.touchBox-image {
 						margin-left: 0 !important;
@@ -102,7 +102,7 @@ body {
 				}
 				&.next .touchBox-image {
 					left: -@image_overlap;
-				}
+				}*/
 			}
 		}
 		.rightSpring {

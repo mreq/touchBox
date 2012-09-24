@@ -42,6 +42,7 @@
 // STYLES
 ///////////////////////////
 body {
+	min-height: 100%;
 	> .touchBox {
 		.square(100%);
 		position: @position;
@@ -89,20 +90,6 @@ body {
 						visibility: hidden;
 					}
 				}
-				/*&.prev, &.next {
-					z-index: @z_index + 4;
-					.touchBox-image {
-						margin-left: 0 !important;
-						cursor: pointer;
-					}	
-				}
-				&.prev .touchBox-image {
-					left: auto;
-					right: -@image_overlap;
-				}
-				&.next .touchBox-image {
-					left: -@image_overlap;
-				}*/
 			}
 		}
 		.rightSpring {

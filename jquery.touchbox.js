@@ -66,14 +66,11 @@
           w = img.width();
           h = img.height();
           img.removeClass('not-aligned');
-          img.attr({
-            width: w,
-            height: h
-          });
-          return img.css({
+          img.css({
             marginLeft: -w / 2,
             marginTop: -h / 2
           });
+          return img.addClass('img-aligned');
         });
       };
       loadImage = function(src, callback) {

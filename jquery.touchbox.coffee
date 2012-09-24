@@ -62,12 +62,10 @@ $ ->
 				w = img.width()
 				h = img.height()
 				img.removeClass 'not-aligned'
-				img.attr
-					width: w
-					height: h
 				img.css
 					marginLeft: -w/2
 					marginTop: -h/2
+				img.addClass 'img-aligned'
 		###############################	
 		## private functions
 		###############################

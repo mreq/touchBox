@@ -6,16 +6,7 @@ $ ->
 		## override options
 		###############################	
 		options = $.extend {}, $.fn.touchBox.defaultOptions, customOptions
-		###############################	
-		## DOM variables
-		###############################	
 		items = this
-		body = $('body')
-		wrap = $('<div class="touchBox hide"></div>')
-		wrap.addClass('absolute') if options.position is 'absolute'
-		overlay = $('<div class="touchBox-overlay"></div>')
-		box = $('<ul class="touchBox-ul"></ul>')
-		placeholders = $([])
 		###############################	
 		## helper variables
 		###############################
@@ -23,6 +14,8 @@ $ ->
 			index: 0        # current index
 			visible: false  # plugin starts hidden
 			init: false     # plugin has to be initialized (on first click)
+		# should we show arrows?
+		showArrows = options.type is 'arrows'
 		count = items.length
 		min = 0 # min index
 		max = count - 1 # max index
@@ -30,6 +23,21 @@ $ ->
 			isTouchDevice = true
 		else
 			isTouchDevice = false
+		###############################	
+		## DOM variables
+		###############################	
+		# overwrite type if invalid
+		options.type = 'arrows' unless typeof options.type is 'string'
+		body = $('body')
+		wrap = $('<div class="touchBox hide type-'+options.type+'"></div>')
+		wrap.addClass('absolute') if options.position is 'absolute'
+		overlay = $('<div class="touchBox-overlay"></div>')
+		box = $('<ul class="touchBox-ul"></ul>')
+		if showArrows
+			arrows = null
+			leftArrow = null
+			rightArrow = null
+		placeholders = $([])
 		###############################	
 		## init actions
 		###############################
@@ -51,6 +59,15 @@ $ ->
 			placeholders.eq(g.index - 1).addClass 'prev'
 			placeholders.eq(g.index).addClass 'current'
 			placeholders.eq(g.index + 1).addClass 'next'
+		toggleArrows = ->
+			if g.index is 0
+				leftArrow.addClass('hide')
+			else
+				leftArrow.removeClass('hide')
+			if g.index is max
+				rightArrow.addClass('hide')
+			else
+				rightArrow.removeClass('hide')
 		makeASpring = (direction) ->
 			className = "#{ direction }Spring"
 			box.addClass className
@@ -66,6 +83,13 @@ $ ->
 					marginLeft: -w/2
 					marginTop: -h/2
 				img.addClass 'img-aligned'
+		createArrows = ->
+			leftArrow = $('<a href="#prev" class="touchBox-arrow touchBox-prev"><span></span></a>')
+			rightArrow = $('<a href="#next" class="touchBox-arrow touchBox-next"><span></span></a>')
+			return leftArrow.add(rightArrow)
+		resize = ->
+			wrap.find('.img-aligned').each ->
+				alignImage $(this)
 		###############################	
 		## private functions
 		###############################
@@ -129,17 +153,22 @@ $ ->
 				id: "touchBox-#{ window.touchBoxCount }"
 			wrap.append overlay
 			wrap.append box
+			if showArrows
+				arrows = createArrows()
+				wrap.append arrows
 			body.append wrap
 			moveToIndex index
 			show index
+			bindEvents()
+			listenForEvents()
 		show = (index) ->
 			index = 0 unless index
 			if g.init
-				moveToIndex index
 				wrap.removeClass 'hide'
+				moveToIndex index
 			else
 				init index
-				wrap.removeClass 'hide'
+			wrap.trigger 'moved'
 			g.visible = true
 		hide = ->
 			wrap.addClass 'hide'
@@ -147,16 +176,19 @@ $ ->
 		###############################	
 		## listen for events
 		###############################
-		wrap.on 'moved', ->
-			toggleClasses()
-			preloadImages()
-		wrap.on 'click', (e) ->
-			hide() unless $(e.target).is 'img'
-		wrap.on 'click', '.next .touchBox-image, .prev .touchBox-image', (e) ->
-			if $(this).parent('.touchBox-placeholder').hasClass 'next'
-				showNext()
-			else
-				showPrevious()
+		listenForEvents = ->
+			wrap.on 'moved', ->
+				toggleClasses()
+				preloadImages()
+				toggleArrows()
+			wrap.on 'click', (e) ->
+				hide() unless $(e.target).is 'img'
+			wrap.on 'click', '.next .touchBox-image, .prev .touchBox-image', (e) ->
+				if $(this).parent('.touchBox-placeholder').hasClass 'next'
+					showNext()
+				else
+					showPrevious()
+			$(window).on 'resize', resize
 		###############################	
 		## bind events
 		###############################
@@ -164,30 +196,41 @@ $ ->
 			e.preventDefault()
 			index = items.index this
 			show index
-		$(window).on 'keydown', (e) ->
-			if g.visible
-				# left arrow
-				showPrevious() if e.keyCode is 37
-				# right arrow
-				showNext() if e.keyCode is 39
-				# escape
-				hide() if e.keyCode is 27
-		if isTouchDevice
-			$(document).on 'touchstart', '.touchBox', (e) ->
-				touch = e.originalEvent
-				startX = touch.changedTouches[0].pageX
-				wrap.on 'touchmove', (e) ->
+		bindEvents = ->
+			if showArrows
+				arrows.on 'click', (e) ->
 					e.preventDefault()
-					touch = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0]
-					if (touch.pageX - startX) > options.touchSensitivity
-						wrap.off 'touchmove'
+					e.stopPropagation()
+					if $(this).hasClass('touchBox-prev')
 						showPrevious()
-					else if (touch.pageX - startX) < -options.touchSensitivity
-						wrap.off 'touchmove'
+					else
 						showNext()
+			$(window).on 'keydown', (e) ->
+				if g.visible
+					code = if e.keyCode then e.keyCode else e.which
+					# left arrow
+					showPrevious() if code is 37
+					# right arrow
+					showNext() if code is 39
+					# escape
+					hide() if code is 27
+			if isTouchDevice
+				$(document).on 'touchstart', '.touchBox', (e) ->
+					touch = e.originalEvent
+					startX = touch.changedTouches[0].pageX
+					wrap.on 'touchmove', (e) ->
+						e.preventDefault()
+						touch = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0]
+						if (touch.pageX - startX) > options.touchSensitivity
+							wrap.off 'touchmove'
+							showPrevious()
+						else if (touch.pageX - startX) < -options.touchSensitivity
+							wrap.off 'touchmove'
+							showNext()
 
 	# default options
 	$.fn.touchBox.defaultOptions =
 		imagesToPreload: 2
 		position: 'fixed'
 		touchSensitivity: 100
+		type: 'arrows'

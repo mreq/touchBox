@@ -28,11 +28,6 @@ body > .touchBox .touchBox-overlay {
   z-index: 1091;
 }
 body > .touchBox .touchBox-ul {
-  -webkit-transition: left 0.4s ease-in-out;
-  -moz-transition: left 0.4s ease-in-out;
-  -ms-transition: left 0.4s ease-in-out;
-  -o-transition: left 0.4s ease-in-out;
-  transition: left 0.4s ease-in-out;
   width: 100%;
   height: 100%;
   position: absolute;
@@ -51,21 +46,9 @@ body > .touchBox .touchBox-ul .touchBox-placeholder {
   list-style: none;
   text-align: center;
   background: url('ajax-loader.gif') center center no-repeat;
-  /*&.prev, &.next {
-					z-index: @z_index + 4;
-					.touchBox-image {
-						margin-left: 0 !important;
-						cursor: pointer;
-					}	
-				}
-				&.prev .touchBox-image {
-					left: auto;
-					right: -@image_overlap;
-				}
-				&.next .touchBox-image {
-					left: -@image_overlap;
-				}*/
-
+}
+body > .touchBox .touchBox-ul .touchBox-placeholder.loaded {
+  background: transparent;
 }
 body > .touchBox .touchBox-ul .touchBox-placeholder .touchBox-image {
   position: absolute;
@@ -84,6 +67,70 @@ body > .touchBox .rightSpring {
 body > .touchBox .leftSpring {
   -moz-animation: leftSpring 0.2s;
   -webkit-animation: leftSpring 0.2s;
+}
+body > .touchBox.type-arrows .touchBox-ul {
+  -webkit-transition: left 0.4s ease-in-out;
+  -moz-transition: left 0.4s ease-in-out;
+  -ms-transition: left 0.4s ease-in-out;
+  -o-transition: left 0.4s ease-in-out;
+  transition: left 0.4s ease-in-out;
+}
+body > .touchBox.type-arrows .touchBox-arrow {
+  width: 20px;
+  height: 20px;
+  display: block;
+  position: absolute;
+  top: 50%;
+  margin-top: -10px;
+  z-index: 1094;
+}
+body > .touchBox.type-arrows .touchBox-arrow span {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0px;
+  height: 0px;
+  border-style: solid;
+  -webkit-transform: rotate(360deg);
+}
+body > .touchBox.type-arrows .touchBox-arrow.hide {
+  display: none;
+}
+body > .touchBox.type-arrows .touchBox-prev {
+  left: 25px;
+}
+body > .touchBox.type-arrows .touchBox-prev span {
+  border-width: 10px 20px 10px 0;
+  border-color: transparent #cccccc transparent transparent;
+}
+body > .touchBox.type-arrows .touchBox-prev:hover span {
+  border-color: transparent #ffffff transparent transparent;
+}
+body > .touchBox.type-arrows .touchBox-next {
+  right: 25px;
+}
+body > .touchBox.type-arrows .touchBox-next span {
+  border-width: 10px 0 10px 20px;
+  border-color: transparent transparent transparent #cccccc;
+}
+body > .touchBox.type-arrows .touchBox-next:hover span {
+  border-color: transparent transparent transparent #ffffff;
+}
+body > .touchBox.type-thumbnails .touchBox-ul .touchBox-placeholder.prev,
+body > .touchBox.type-thumbnails .touchBox-ul .touchBox-placeholder.next {
+  z-index: 1094;
+}
+body > .touchBox.type-thumbnails .touchBox-ul .touchBox-placeholder.prev .touchBox-image,
+body > .touchBox.type-thumbnails .touchBox-ul .touchBox-placeholder.next .touchBox-image {
+  margin-left: 0 !important;
+  cursor: pointer;
+}
+body > .touchBox.type-thumbnails .touchBox-ul .touchBox-placeholder.prev .touchBox-image {
+  left: auto;
+  right: -100px;
+}
+body > .touchBox.type-thumbnails .touchBox-ul .touchBox-placeholder.next .touchBox-image {
+  left: -100px;
 }
 @-moz-keyframes rightSpring {
   0% {

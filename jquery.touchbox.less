@@ -9,6 +9,8 @@
 @image_path: '';
 @image_overlap: 100px;
 @transition_time: 0.4s;
+@arrow_color: #ccc;
+@arrow_color_hover: #fff;
 // overlay
 @overlay_opacity: 75;
 @overlay_color: black;
@@ -64,7 +66,6 @@ body {
 			z-index: @z_index + 1;
 		}
 		.touchBox-ul {
-			.transition;
 			.square(100%);
 			position: absolute;
 			top: 0;
@@ -80,6 +81,9 @@ body {
 				list-style: none;
 				text-align: center;
 				background: url('@{image_path}ajax-loader.gif') center center no-repeat;
+				&.loaded {
+					background: transparent;
+				}
 				.touchBox-image {
 					position: absolute;
 					max-height: 80%;
@@ -100,7 +104,77 @@ body {
 			-moz-animation: leftSpring @spring_time;
 			-webkit-animation: leftSpring @spring_time;
 		}
-
+		&.type-arrows {
+			.touchBox-ul {
+				.transition;
+			}
+			@size: 20px;
+			.touchBox-arrow {
+				width: @size;
+				height: @size;
+				display: block;
+				position: absolute;
+				top: 50%;
+				margin-top: -@size/2;
+				z-index: @z_index + 4;
+				span {
+					position: absolute;
+					top: 0;
+					left: 0;
+					width: 0px;
+					height: 0px;
+					border-style: solid;
+					-webkit-transform:rotate(360deg);
+				}
+				&.hide {
+					display: none;
+				}
+			}
+			.touchBox-prev {
+				left: 25px;
+				span {
+					border-width: @size/2 @size @size/2 0;
+					border-color: transparent @arrow_color transparent transparent;
+				}
+				&:hover {
+					span {
+						border-color: transparent @arrow_color_hover transparent transparent;
+					}
+				}
+			}
+			.touchBox-next {
+				right: 25px;
+				span {
+					border-width: @size/2 0 @size/2 @size;
+					border-color: transparent transparent transparent @arrow_color;
+				}
+				&:hover {
+					span {
+						border-color: transparent transparent transparent @arrow_color_hover;
+					}
+				}
+			}
+		}
+		&.type-thumb	nails {
+			.touchBox-ul {
+				.touchBox-placeholder {
+					&.prev, &.next {
+						z-index: @z_index + 4;
+						.touchBox-image {
+							margin-left: 0 !important;
+							cursor: pointer;
+						}	
+					}
+					&.prev .touchBox-image {
+						left: auto;
+						right: -@image_overlap;
+					}
+					&.next .touchBox-image {
+						left: -@image_overlap;
+					}
+				}
+			}
+		}
 	}
 }
 @-moz-keyframes rightSpring{

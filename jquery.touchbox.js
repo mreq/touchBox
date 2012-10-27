@@ -3,22 +3,15 @@
 
   $(function() {
     $.fn.touchBox = function(customOptions) {
-      var alignImage, body, box, count, extractUrlFrom, g, hide, init, isTouchDevice, isValidIndex, items, loadImage, makeASpring, makePlaceholders, max, min, moveToIndex, options, overlay, placeImage, placeholders, preloadImages, show, showNext, showPrevious, toggleClasses, wrap;
+      var alignImage, arrows, bindEvents, body, box, count, createArrows, extractUrlFrom, g, hide, init, isTouchDevice, isValidIndex, items, leftArrow, listenForEvents, loadImage, makeASpring, makePlaceholders, max, min, moveToIndex, options, overlay, placeImage, placeholders, preloadImages, resize, rightArrow, show, showArrows, showNext, showPrevious, toggleArrows, toggleClasses, wrap;
       options = $.extend({}, $.fn.touchBox.defaultOptions, customOptions);
       items = this;
-      body = $('body');
-      wrap = $('<div class="touchBox hide"></div>');
-      if (options.position === 'absolute') {
-        wrap.addClass('absolute');
-      }
-      overlay = $('<div class="touchBox-overlay"></div>');
-      box = $('<ul class="touchBox-ul"></ul>');
-      placeholders = $([]);
       g = {
         index: 0,
         visible: false,
         init: false
       };
+      showArrows = options.type === 'arrows';
       count = items.length;
       min = 0;
       max = count - 1;
@@ -27,6 +20,22 @@
       } else {
         isTouchDevice = false;
       }
+      if (typeof options.type !== 'string') {
+        options.type = 'arrows';
+      }
+      body = $('body');
+      wrap = $('<div class="touchBox hide type-' + options.type + '"></div>');
+      if (options.position === 'absolute') {
+        wrap.addClass('absolute');
+      }
+      overlay = $('<div class="touchBox-overlay"></div>');
+      box = $('<ul class="touchBox-ul"></ul>');
+      if (showArrows) {
+        arrows = null;
+        leftArrow = null;
+        rightArrow = null;
+      }
+      placeholders = $([]);
       makePlaceholders = function() {
         items.each(function(index) {
           return placeholders = placeholders.add($("<li class=\"touchBox-placeholder\" data-index=\"" + index + "\"></li>"));
@@ -51,6 +60,18 @@
         placeholders.eq(g.index).addClass('current');
         return placeholders.eq(g.index + 1).addClass('next');
       };
+      toggleArrows = function() {
+        if (g.index === 0) {
+          leftArrow.addClass('hide');
+        } else {
+          leftArrow.removeClass('hide');
+        }
+        if (g.index === max) {
+          return rightArrow.addClass('hide');
+        } else {
+          return rightArrow.removeClass('hide');
+        }
+      };
       makeASpring = function(direction) {
         var callback, className;
         className = "" + direction + "Spring";
@@ -71,6 +92,16 @@
             marginTop: -h / 2
           });
           return img.addClass('img-aligned');
+        });
+      };
+      createArrows = function() {
+        leftArrow = $('<a href="#prev" class="touchBox-arrow touchBox-prev"><span></span></a>');
+        rightArrow = $('<a href="#next" class="touchBox-arrow touchBox-next"><span></span></a>');
+        return leftArrow.add(rightArrow);
+      };
+      resize = function() {
+        return wrap.find('.img-aligned').each(function() {
+          return alignImage($(this));
         });
       };
       loadImage = function(src, callback) {
@@ -160,85 +191,111 @@
         });
         wrap.append(overlay);
         wrap.append(box);
+        if (showArrows) {
+          arrows = createArrows();
+          wrap.append(arrows);
+        }
         body.append(wrap);
         moveToIndex(index);
-        return show(index);
+        show(index);
+        bindEvents();
+        return listenForEvents();
       };
       show = function(index) {
         if (!index) {
           index = 0;
         }
         if (g.init) {
-          moveToIndex(index);
           wrap.removeClass('hide');
+          moveToIndex(index);
         } else {
           init(index);
-          wrap.removeClass('hide');
         }
+        wrap.trigger('moved');
         return g.visible = true;
       };
       hide = function() {
         wrap.addClass('hide');
         return g.visible = false;
       };
-      wrap.on('moved', function() {
-        toggleClasses();
-        return preloadImages();
-      });
-      wrap.on('click', function(e) {
-        if (!$(e.target).is('img')) {
-          return hide();
-        }
-      });
-      wrap.on('click', '.next .touchBox-image, .prev .touchBox-image', function(e) {
-        if ($(this).parent('.touchBox-placeholder').hasClass('next')) {
-          return showNext();
-        } else {
-          return showPrevious();
-        }
-      });
+      listenForEvents = function() {
+        wrap.on('moved', function() {
+          toggleClasses();
+          preloadImages();
+          return toggleArrows();
+        });
+        wrap.on('click', function(e) {
+          if (!$(e.target).is('img')) {
+            return hide();
+          }
+        });
+        wrap.on('click', '.next .touchBox-image, .prev .touchBox-image', function(e) {
+          if ($(this).parent('.touchBox-placeholder').hasClass('next')) {
+            return showNext();
+          } else {
+            return showPrevious();
+          }
+        });
+        return $(window).on('resize', resize);
+      };
       items.on('click', function(e) {
         var index;
         e.preventDefault();
         index = items.index(this);
         return show(index);
       });
-      $(window).on('keydown', function(e) {
-        if (g.visible) {
-          if (e.keyCode === 37) {
-            showPrevious();
-          }
-          if (e.keyCode === 39) {
-            showNext();
-          }
-          if (e.keyCode === 27) {
-            return hide();
-          }
-        }
-      });
-      if (isTouchDevice) {
-        return $(document).on('touchstart', '.touchBox', function(e) {
-          var startX, touch;
-          touch = e.originalEvent;
-          startX = touch.changedTouches[0].pageX;
-          return wrap.on('touchmove', function(e) {
+      return bindEvents = function() {
+        if (showArrows) {
+          arrows.on('click', function(e) {
             e.preventDefault();
-            touch = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0];
-            if ((touch.pageX - startX) > options.touchSensitivity) {
-              wrap.off('touchmove');
+            e.stopPropagation();
+            if ($(this).hasClass('touchBox-prev')) {
               return showPrevious();
-            } else if ((touch.pageX - startX) < -options.touchSensitivity) {
-              wrap.off('touchmove');
+            } else {
               return showNext();
             }
           });
+        }
+        $(window).on('keydown', function(e) {
+          var code;
+          if (g.visible) {
+            code = e.keyCode ? e.keyCode : e.which;
+            if (code === 37) {
+              showPrevious();
+            }
+            if (code === 39) {
+              showNext();
+            }
+            if (code === 27) {
+              return hide();
+            }
+          }
         });
-      }
+        if (isTouchDevice) {
+          return $(document).on('touchstart', '.touchBox', function(e) {
+            var startX, touch;
+            touch = e.originalEvent;
+            startX = touch.changedTouches[0].pageX;
+            return wrap.on('touchmove', function(e) {
+              e.preventDefault();
+              touch = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0];
+              if ((touch.pageX - startX) > options.touchSensitivity) {
+                wrap.off('touchmove');
+                return showPrevious();
+              } else if ((touch.pageX - startX) < -options.touchSensitivity) {
+                wrap.off('touchmove');
+                return showNext();
+              }
+            });
+          });
+        }
+      };
     };
     return $.fn.touchBox.defaultOptions = {
       imagesToPreload: 2,
       position: 'fixed',
-      touchSensitivity: 100
+      touchSensitivity: 100,
+      type: 'arrows'
     };
   });
 

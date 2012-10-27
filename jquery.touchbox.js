@@ -17,6 +17,7 @@
       max = count - 1;
       if (('ontouchstart' in window) || window.DocumentTouch && document instanceof DocumentTouch) {
         isTouchDevice = true;
+        showArrows = false;
       } else {
         isTouchDevice = false;
       }

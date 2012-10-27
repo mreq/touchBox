@@ -21,6 +21,8 @@ $ ->
 		max = count - 1 # max index
 		if `('ontouchstart' in window) || window.DocumentTouch && document instanceof DocumentTouch`
 			isTouchDevice = true
+			# don't show arrows on touch devices
+			showArrows = false
 		else
 			isTouchDevice = false
 		###############################	
